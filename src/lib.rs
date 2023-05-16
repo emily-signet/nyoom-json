@@ -54,22 +54,22 @@ impl<'a> JsonBuffer for StringBuffer<'a> {
 /// # Examples
 /// ```
 /// use nyoom_json::Serializer;
-/// 
+///
 /// let mut out = String::new();
 /// let mut ser = Serializer::create(&mut out);
-/// 
+///
 /// let mut obj = ser.object();
 /// obj.field("kind", "cat");
 /// obj.field("has_been_fed", false);
 /// obj.field("meow_decibels", 45);
 /// obj.end();
-/// 
+///
 /// let mut arr = ser.array();
 /// arr.add("friends");
 /// arr.add("romans");
 /// arr.add("countrymen");
 /// arr.end();
-/// 
+///
 /// ser.end();
 /// ```
 #[repr(transparent)]
@@ -82,10 +82,11 @@ impl<'a> Serializer<StringBuffer<'a>> {
     /// Creates a serializer over a mutable string reference.
     #[inline(always)]
     pub fn create(buf: &'a mut String) -> Serializer<StringBuffer<'a>> {
-        Serializer { buf: StringBuffer(buf) }
+        Serializer {
+            buf: StringBuffer(buf),
+        }
     }
 }
-
 
 impl<S: JsonBuffer> Serializer<S> {
     pub fn new(buf: S) -> Serializer<S> {
@@ -94,10 +95,10 @@ impl<S: JsonBuffer> Serializer<S> {
 
     /// Writes out a single primitive JSON value.
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use nyoom_json::Serializer;
-    /// 
+    ///
     /// let mut out = String::new();
     /// let mut ser = Serializer::create(&mut out);
     /// ser.write(3);
@@ -109,13 +110,13 @@ impl<S: JsonBuffer> Serializer<S> {
 
     /// Starts serialization of an array.
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use nyoom_json::Serializer;
-    /// 
+    ///
     /// let mut out = String::new();
     /// let mut ser = Serializer::create(&mut out);
-    /// 
+    ///
     /// let mut arr = ser.array();
     /// arr.add("friends");
     /// arr.add("romans");
@@ -123,19 +124,19 @@ impl<S: JsonBuffer> Serializer<S> {
     /// arr.end();
     /// ```
     #[inline(always)]
-    pub fn array<'a>(&'a mut self) -> ArrayWriter<&'a mut S> {
+    pub fn array(&mut self) -> ArrayWriter<&mut S> {
         ArrayWriter::start(&mut self.buf)
     }
 
     /// Starts serialization of an object.
     /// # Examples
-    /// 
+    ///
     /// ```
     /// use nyoom_json::Serializer;
-    /// 
+    ///
     /// let mut out = String::new();
     /// let mut ser = Serializer::create(&mut out);
-    /// 
+    ///
     /// let mut obj = ser.object();
     /// obj.field("kind", "cat");
     /// obj.field("has_been_fed", false);
@@ -143,7 +144,7 @@ impl<S: JsonBuffer> Serializer<S> {
     /// obj.end();
     /// ```
     #[inline(always)]
-    pub fn object<'a>(&'a mut self) -> ObjectWriter<&'a mut S> {
+    pub fn object(&mut self) -> ObjectWriter<&mut S> {
         ObjectWriter::start(&mut self.buf)
     }
 
@@ -153,7 +154,7 @@ impl<S: JsonBuffer> Serializer<S> {
     }
 }
 
-/// A serializer that is only able to serialize a single value. See documentation of [Serializer](Serializer) 
+/// A serializer that is only able to serialize a single value. See documentation of [Serializer](Serializer)
 pub struct SingleValueSerializer<S: JsonBuffer> {
     guard: ManuallyDrop<S>,
 }
@@ -223,7 +224,7 @@ impl<S: JsonBuffer> ArrayWriter<S> {
 
     /// Adds a single primitive JSON value to this array.
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use nyoom_json::Serializer;
     /// #
@@ -244,7 +245,7 @@ impl<S: JsonBuffer> ArrayWriter<S> {
 
     /// Adds a slice of a JSON primitive to this array.
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use nyoom_json::Serializer;
     /// #
@@ -263,13 +264,13 @@ impl<S: JsonBuffer> ArrayWriter<S> {
     }
 
     /// Adds an arbitrary JSON object to this array.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `encoder` - A closure that encodes a single value into the array.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use nyoom_json::Serializer;
     /// #
@@ -291,6 +292,55 @@ impl<S: JsonBuffer> ArrayWriter<S> {
     {
         self.comma();
         encoder(SingleValueSerializer::new(&mut self.buf));
+    }
+
+    /// Adds a JSON object to this array.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nyoom_json::Serializer;
+    /// #
+    /// # let mut out = String::new();
+    /// # let mut ser = Serializer::create(&mut out);
+    /// #
+    /// let mut arr = ser.array();
+    ///
+    /// let mut obj = arr.add_object();
+    /// obj.field("kitten", true);
+    /// obj.field("cuteness", 10.0);
+    /// obj.end();
+    ///
+    /// arr.end();
+    /// ```
+    #[inline(always)]
+    pub fn add_object(&mut self) -> ObjectWriter<&mut S> {
+        self.comma();
+        ObjectWriter::start(&mut self.buf)
+    }
+
+    /// Adds a JSON array.. to this array.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nyoom_json::Serializer;
+    /// #
+    /// # let mut out = String::new();
+    /// # let mut ser = Serializer::create(&mut out);
+    /// #
+    /// let mut arr = ser.array();
+    ///
+    /// let mut inner_arr = arr.add_array();
+    /// inner_arr.extend(&[1,2,3]);
+    /// inner_arr.end();
+    ///
+    /// arr.end();
+    /// ```
+    #[inline(always)]
+    pub fn add_array(&mut self) -> ArrayWriter<&mut S> {
+        self.comma();
+        ArrayWriter::start(&mut self.buf)
     }
 
     /// Finishes out the array. Equivalent to drop(arr);
@@ -359,7 +409,7 @@ impl<S: JsonBuffer> ObjectWriter<S> {
     }
 
     /// Adds a field to this object.
-    /// 
+    ///
     /// # Examples
     /// ```
     /// # use nyoom_json::Serializer;
@@ -380,14 +430,14 @@ impl<S: JsonBuffer> ObjectWriter<S> {
     }
 
     /// Adds an arbitrary JSON object to this object.
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `key` - the key for the field
     /// * `encoder` - A closure that encodes a single value into the field.
-    /// 
+    ///
     /// # Examples
-    /// 
+    ///
     /// ```
     /// # use nyoom_json::Serializer;
     /// #
@@ -411,6 +461,63 @@ impl<S: JsonBuffer> ObjectWriter<S> {
     {
         self.key(key);
         encode(SingleValueSerializer::new(&mut self.buf))
+    }
+
+    /// Adds a JSON object field to this object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nyoom_json::Serializer;
+    /// #
+    /// # let mut out = String::new();
+    /// # let mut ser = Serializer::create(&mut out);
+    /// #
+    /// let mut obj = ser.object();
+    /// obj.field("kitten", true);
+    /// obj.field("cuteness", 10.0);
+    ///
+    /// let mut bed = obj.object_field("bed");
+    /// bed.field("cozy", true);
+    /// bed.field("wear_and_tear", 2.0);
+    /// bed.end();
+    ///
+    /// obj.end();
+    /// ```
+    #[inline(always)]
+    pub fn object_field<K: Key>(&mut self, key: K) -> ObjectWriter<&mut S> {
+        self.key(key);
+        ObjectWriter::start(&mut self.buf)
+    }
+
+    /// Adds a JSON array field to this object.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use nyoom_json::Serializer;
+    /// #
+    /// # let mut out = String::new();
+    /// # let mut ser = Serializer::create(&mut out);
+    /// #
+    /// let mut arr = ser.array();
+    ///
+    /// let mut obj = arr.add_object();
+    /// obj.field("kitten", true);
+    /// obj.field("cuteness", 10.0);
+    ///
+    /// let mut toys = obj.array_field("toys");
+    /// toys.extend(&["mouse", "ball", "string", "box", "scratcher"]);
+    /// toys.end();
+    ///
+    /// obj.end();
+    ///
+    /// arr.end();
+    /// ```
+    #[inline(always)]
+    pub fn array_field<K: Key>(&mut self, key: K) -> ArrayWriter<&mut S> {
+        self.key(key);
+        ArrayWriter::start(&mut self.buf)
     }
 
     #[inline(always)]

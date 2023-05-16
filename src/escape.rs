@@ -4,7 +4,6 @@ code sourced from https://github.com/dtolnay/miniserde, licensed under the MIT l
 
 use crate::JsonBuffer;
 
-
 // Clippy false positive: https://github.com/rust-lang/rust-clippy/issues/5169
 #[allow(clippy::zero_prefixed_literal)]
 #[inline(always)]

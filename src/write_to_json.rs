@@ -1,7 +1,5 @@
 use crate::{escape::escape_str, JsonBuffer};
 
-
-
 /// A value that is able to be written directly into JSON.
 pub trait WriteToJson<S: JsonBuffer> {
     fn write_to_json(self, out: &mut S);
@@ -59,8 +57,6 @@ impl<S: JsonBuffer> WriteToJson<S> for bool {
     }
 }
 
-
-
 /// The JSON null value!
 pub struct Null;
 
@@ -78,14 +74,20 @@ impl<S: JsonBuffer> WriteToJson<S> for Null {
     }
 }
 
-impl<S: JsonBuffer, T> WriteToJson<S> for &T where T: Copy + WriteToJson<S> {
+impl<S: JsonBuffer, T> WriteToJson<S> for &T
+where
+    T: Copy + WriteToJson<S>,
+{
     #[inline(always)]
     fn write_to_json(self, out: &mut S) {
         (*self).write_to_json(out)
     }
 }
 
-impl<S: JsonBuffer, T> WriteToJson<S> for Option<T> where T: WriteToJson<S> {
+impl<S: JsonBuffer, T> WriteToJson<S> for Option<T>
+where
+    T: WriteToJson<S>,
+{
     #[inline(always)]
     fn write_to_json(self, out: &mut S) {
         match self {

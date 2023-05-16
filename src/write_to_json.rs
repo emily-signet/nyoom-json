@@ -79,8 +79,19 @@ impl<S: JsonBuffer> WriteToJson<S> for Null {
 }
 
 impl<S: JsonBuffer, T> WriteToJson<S> for &T where T: Copy + WriteToJson<S> {
+    #[inline(always)]
     fn write_to_json(self, out: &mut S) {
         (*self).write_to_json(out)
+    }
+}
+
+impl<S: JsonBuffer, T> WriteToJson<S> for Option<T> where T: WriteToJson<S> {
+    #[inline(always)]
+    fn write_to_json(self, out: &mut S) {
+        match self {
+            Some(v) => v.write_to_json(out),
+            None => Null.write_to_json(out),
+        }
     }
 }
 

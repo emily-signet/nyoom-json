@@ -1,6 +1,6 @@
 [package]
 name = "nyoom-json"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 readme = "README.md"
 keywords = ["json", "streaming", "no-std"]
@@ -17,3 +17,13 @@ alloc = []
 itoa = "1.0.6"
 ryu = "1.0.13"
 sealed = "0.5.0"
+
+[dev-dependencies]
+criterion = "0.4"
+serde_json = "1"
+serde = { version = "1", features = ["derive"] }
+strum = { version = "0.24", features = ["derive"] }
+
+[[bench]]
+name = "serialize"
+harness = false

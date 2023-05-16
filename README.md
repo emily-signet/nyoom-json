@@ -11,7 +11,7 @@ nyoom-json borrows heavily in style from [write-json](https://github.com/matklad
 ```rust
 use nyoom_json::{Serializer, Null};
 let mut out = String::new();
-let mut ser = Serializer::create(&mut out);
+let mut ser = Serializer::new(&mut out);
 
 let mut obj = ser.object();
 obj.field("kind", "cat");
@@ -24,7 +24,7 @@ obj.end();
 ```rust
 use nyoom_json::Serializer;
 let mut out = String::new();
-let mut ser = Serializer::create(&mut out);
+let mut ser = Serializer::new(&mut out);
 
 let mut arr = ser.array();
 arr.add(1);
@@ -38,7 +38,7 @@ ser.end();
 ```rust
 use nyoom_json::{Serializer, UnescapedStr};
 let mut out = String::with_capacity(64);
-let mut ser = Serializer::create(&mut out);
+let mut ser = Serializer::new(&mut out);
 let mut arr = ser.array();
     
 arr.add_complex(|mut ser| {

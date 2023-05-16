@@ -2,19 +2,21 @@
 code sourced from https://github.com/dtolnay/miniserde, licensed under the MIT license
 */
 
-use crate::JsonBuffer;
+use crate::{cold, JsonBuffer};
 
 // Clippy false positive: https://github.com/rust-lang/rust-clippy/issues/5169
 #[allow(clippy::zero_prefixed_literal)]
-#[inline(always)]
+// #[inline(always)]
 pub(crate) fn escape_str<S: JsonBuffer>(value: &str, out: &mut S) {
     let bytes = value.as_bytes();
     let mut start = 0;
 
     for (i, &byte) in bytes.iter().enumerate() {
-        let escape = ESCAPE[byte as usize];
+        let escape = unsafe { *ESCAPE.get_unchecked(byte as usize) };
         if escape == 0 {
             continue;
+        } else {
+            cold();
         }
 
         if start < i {
@@ -58,7 +60,7 @@ const U: u8 = b'u'; // \x00...\x1F except the ones above
 // Lookup table of escape sequences. A value of b'x' at index i means that byte
 // i is escaped as "\x" in JSON. A value of 0 means that byte i is not escaped.
 #[rustfmt::skip]
-pub(crate) const ESCAPE: [u8; 256] = [
+pub(crate) static ESCAPE: [u8; 256] = [
     //  1   2   3   4   5   6   7   8   9   A   B   C   D   E   F
     U,  U,  U,  U,  U,  U,  U,  U, BB, TT, NN,  U, FF, RR,  U,  U, // 0
     U,  U,  U,  U,  U,  U,  U,  U,  U,  U,  U,  U,  U,  U,  U,  U, // 1
